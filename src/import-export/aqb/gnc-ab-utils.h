@@ -181,14 +181,44 @@ gchar *gnc_ab_get_remote_name(const AB_TRANSACTION *ab_trans);
 gchar *gnc_ab_get_purpose(const AB_TRANSACTION *ab_trans);
 
 /**
+ * Fetch a concatenation of transaction text and purpose from the
+ * the AB_TRANSACTION @a ab_trans. The returned string must be
+ * g_free'd by the caller.
+ *
+ * @param ab_trans AqBanking transaction
+ * @return A newly allocated string, may be ""
+ */
+gchar *gnc_ab_description_to_gnc(const AB_TRANSACTION *ab_trans);
+
+/**
+ * Extract a possible transaction text by the information given in the
+ * AB_TRANSACTION @a ab_trans. The returned string (if any) must be
+ * g_free'd by the caller.
+ *
+ * @param ab_trans AqBanking transaction
+ *
+ * @return
+ * 			- A string containing a transaction text
+ * 			- NULL if no transaction text
+ *
+ * @note	If a bank does not supply a transaction text, you could
+ * 			still use the purpose (#gnc_ab_purpose_to_gnc) to create
+ * 			an appropriate description.
+ */
+gchar *gnc_ab_transactionText_to_gnc(const AB_TRANSACTION *ab_trans);
+
+/**
  * Create the appropriate description field for a GnuCash Transaction by the
  * information given in the AB_TRANSACTION @a ab_trans.  The returned string
  * must be g_free'd by the caller.
  *
  * @param ab_trans AqBanking transaction
  * @return A newly allocated string, may be ""
+ *
+ * @note	Some banks supply a transaction text that might be more
+ * 			meaningful to the user. (@see gnc_ab_transactionText_to_gnc)
  */
-gchar *gnc_ab_description_to_gnc(const AB_TRANSACTION *ab_trans);
+gchar *gnc_ab_purpose_to_gnc(const AB_TRANSACTION *ab_trans);
 
 /**
  * Create the appropriate memo field for a GnuCash Split by the information

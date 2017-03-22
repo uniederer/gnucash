@@ -366,14 +366,9 @@ gchar *
 gnc_ab_get_purpose(const AB_TRANSACTION *ab_trans)
 {
     const GWEN_STRINGLIST *ab_purpose;
-    const char *ab_transactionText = NULL;
     gchar *gnc_description = NULL;
 
     g_return_val_if_fail(ab_trans, g_strdup(""));
-
-    ab_transactionText = AB_Transaction_GetTransactionText(ab_trans);
-    if (ab_transactionText)
-    	gnc_description = g_strdup(ab_transactionText);
 
     ab_purpose = AB_Transaction_GetPurpose(ab_trans);
     if (ab_purpose)
@@ -387,7 +382,38 @@ gnc_ab_get_purpose(const AB_TRANSACTION *ab_trans)
 }
 
 gchar *
-gnc_ab_description_to_gnc(const AB_TRANSACTION *ab_trans)
+gnc_ab_description_to_gnc(const AB_TRANSACTION *ab_trans) {
+	gchar *result;
+    gchar *transactionText = gnc_ab_transactionText_to_gnc(ab_trans);
+    gchar *purpose = gnc_ab_purpose_to_gnc(ab_trans);
+
+    if (transactionText) {
+    	result = g_strjoin("; ", transactionText, purpose, (gchar*) NULL);
+    	g_free(transactionText); transactionText = NULL;
+		g_free(purpose); purpose = NULL;
+    }
+    else {
+    	result = purpose;
+    }
+
+	return result;
+}
+
+gchar *
+gnc_ab_transactionText_to_gnc(const AB_TRANSACTION *ab_trans)
+{
+    const char *ab_transactionText = NULL;
+    gchar *retval = NULL;
+
+    ab_transactionText = AB_Transaction_GetTransactionText(ab_trans);
+    if (ab_transactionText)
+    	retval = g_strdup(ab_transactionText);
+
+    return retval;
+}
+
+gchar *
+gnc_ab_purpose_to_gnc(const AB_TRANSACTION *ab_trans)
 {
     /* Description */
     gchar *description = gnc_ab_get_purpose(ab_trans);
@@ -489,7 +515,8 @@ gnc_ab_trans_to_gnc(const AB_TRANSACTION *ab_trans, Account *gnc_acc)
     const GWEN_TIME *valuta_date;
     time64 current_time;
     const char *custref;
-    gchar *description;
+    gchar *transactionText;
+    gchar *purpose;
     Split *split;
     gchar *memo;
 
@@ -521,14 +548,24 @@ gnc_ab_trans_to_gnc(const AB_TRANSACTION *ab_trans, Account *gnc_acc)
     /* Trans-Num or Split-Action set with gnc_set_num_action below per book
      * option */
 
-    /* Description */
-    description = gnc_ab_description_to_gnc(ab_trans);
-    xaccTransSetDescription(gnc_trans, description);
-    g_free(description);
+    /* Set description and notes. If a bank places a transaction text, we use this one
+     * as description and place the purpose in the transaction's notes. Otherwise we
+     * use the purpose as description. */
+    transactionText = gnc_ab_transactionText_to_gnc(ab_trans);
+    purpose = gnc_ab_purpose_to_gnc(ab_trans);
 
-    /* Notes. */
-    /* xaccTransSetNotes(gnc_trans, g_notes); */
-    /* But Nobody ever uses the Notes field? */
+    if (transactionText) {
+		xaccTransSetDescription(gnc_trans, transactionText);
+		xaccTransSetNotes(gnc_trans, purpose);
+		g_free(transactionText);
+		transactionText = NULL;
+    }
+    else {
+    	xaccTransSetDescription(gnc_trans, purpose);
+    }
+
+    g_free(purpose);
+    purpose = NULL;
 
     /* Add one split */
     split = xaccMallocSplit(book);
