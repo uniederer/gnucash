@@ -382,21 +382,24 @@ gnc_ab_get_purpose(const AB_TRANSACTION *ab_trans)
 }
 
 gchar *
-gnc_ab_description_to_gnc(const AB_TRANSACTION *ab_trans) {
-	gchar *result;
+gnc_ab_description_to_gnc(const AB_TRANSACTION *ab_trans)
+{
+    gchar *result;
     gchar *transactionText = gnc_ab_transactionText_to_gnc(ab_trans);
     gchar *purpose = gnc_ab_purpose_to_gnc(ab_trans);
 
-    if (transactionText) {
-    	result = g_strjoin("; ", transactionText, purpose, (gchar*) NULL);
-    	g_free(transactionText); transactionText = NULL;
-		g_free(purpose); purpose = NULL;
+    if (transactionText)
+    {
+        result = g_strjoin("; ", transactionText, purpose, (gchar*) NULL);
+        g_free(transactionText); transactionText = NULL;
+        g_free(purpose); purpose = NULL;
     }
-    else {
-    	result = purpose;
+    else
+    {
+        result = purpose;
     }
 
-	return result;
+    return result;
 }
 
 gchar *
@@ -407,7 +410,7 @@ gnc_ab_transactionText_to_gnc(const AB_TRANSACTION *ab_trans)
 
     ab_transactionText = AB_Transaction_GetTransactionText(ab_trans);
     if (ab_transactionText)
-    	retval = g_strdup(ab_transactionText);
+        retval = g_strdup(ab_transactionText);
 
     return retval;
 }
@@ -554,14 +557,16 @@ gnc_ab_trans_to_gnc(const AB_TRANSACTION *ab_trans, Account *gnc_acc)
     transactionText = gnc_ab_transactionText_to_gnc(ab_trans);
     purpose = gnc_ab_purpose_to_gnc(ab_trans);
 
-    if (transactionText) {
-		xaccTransSetDescription(gnc_trans, transactionText);
-		xaccTransSetNotes(gnc_trans, purpose);
-		g_free(transactionText);
-		transactionText = NULL;
+    if (transactionText)
+    {
+        xaccTransSetDescription(gnc_trans, transactionText);
+        xaccTransSetNotes(gnc_trans, purpose);
+        g_free(transactionText);
+        transactionText = NULL;
     }
-    else {
-    	xaccTransSetDescription(gnc_trans, purpose);
+    else
+    {
+        xaccTransSetDescription(gnc_trans, purpose);
     }
 
     g_free(purpose);
